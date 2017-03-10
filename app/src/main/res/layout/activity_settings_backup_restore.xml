@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_settings_backup_restore"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.flawiddsouza.writer.SettingsBackupRestoreActivity">
+
+            <GridLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="18dp">
+                <TextView
+                    android:text="Local"
+                    android:textColor="@android:color/black"
+                    android:textSize="@dimen/textSize1"
+                    android:layout_marginBottom="5dp"/>
+                <GridLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Last Backup:" />
+                    <TextView
+                        android:id="@+id/last_local_backup_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="6dp" />
+                </GridLayout>
+                <GridLayout
+                    android:orientation="horizontal"
+                    android:layout_marginTop="5dp">
+                    <Button
+                        android:text="Backup"
+                        android:onClick="localBackup" />
+                    <Button
+                        android:layout_marginLeft="10dp"
+                        android:text="Restore"
+                        android:onClick="localRestore" />
+                </GridLayout>
+                <TextView
+                    android:text="Google Drive"
+                    android:textColor="@android:color/black"
+                    android:textSize="@dimen/textSize1"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginTop="20dp" />
+                <GridLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Last Backup:" />
+                    <TextView
+                        android:id="@+id/last_cloud_backup_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="6dp"
+                        android:text="Never"/>
+                </GridLayout>
+                <GridLayout
+                    android:orientation="horizontal"
+                    android:layout_marginTop="5dp">
+                    <Button
+                        android:text="Backup"
+                        android:onClick="cloudBackup" />
+                    <Button
+                        android:layout_marginLeft="10dp"
+                        android:text="Restore"
+                        android:onClick="cloudRestore" />
+                </GridLayout>
+    </GridLayout>
+</LinearLayout>

@@ -1,0 +1,18 @@
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <header
+        android:icon="@drawable/ic_sync_black_24dp"
+        android:title="@string/backup_restore_heading">
+        <intent
+            android:targetPackage="com.flawiddsouza.writer"
+            android:targetClass="com.flawiddsouza.writer.SettingsBackupRestoreActivity" />
+    </header>
+    <header
+        android:icon="@drawable/ic_lock_black_24dp"
+        android:title="Privacy Mode">
+        <intent
+            android:targetPackage="com.flawiddsouza.writer"
+            android:targetClass="com.flawiddsouza.writer.SettingsPrivacyModeActivity" />
+    </header>
+
+</preference-headers>
