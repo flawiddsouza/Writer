@@ -99,6 +99,9 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 cursor.moveToFirst(); // select first row
                 thisEntry.title = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ENTRY_TITLE));
                 thisEntry.body = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ENTRY_BODY));
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                thisEntry.createdAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("created_at")));
+                thisEntry.updatedAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("updated_at")));
             }
         } catch (Exception e) {
             Log.e("cursor error", e.getLocalizedMessage());

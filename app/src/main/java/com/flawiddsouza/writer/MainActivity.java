@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,6 +18,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo)
     {
         super.onCreateContextMenu(menu, view, menuInfo);
+        menu.add(0, view.getId(), 0, "Details");
         menu.add(0, view.getId(), 0, "Copy"); // groupId, itemId, order, title
         menu.add(0, view.getId(), 0, "Share");
         menu.add(0, view.getId(), 0, "Delete");
@@ -80,7 +84,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item){
         AdapterView.AdapterContextMenuInfo activeListItem = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        if(item.getTitle() == "Copy"){
+        if(item.getTitle() == "Details"){
+            Entry thisEntry = handler.getEntry(activeListItem.id);
+            SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MMM-yy hh:mm a");
+            new AlertDialog.Builder(this)
+                    .setMessage("Created on: " + DATE_FORMAT.format(thisEntry.createdAt) + '\n' + "Updated on: " + DATE_FORMAT.format(thisEntry.updatedAt))
+                    .show();
+        }
+        else if(item.getTitle() == "Copy"){
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             Entry thisEntry = handler.getEntry(activeListItem.id);
             ClipData clip;
