@@ -7,4 +7,6 @@
     <string name="backup_restore_heading"><![CDATA[Backup & Restore]]></string>
     <string name="privacy_mode_heading">Privacy Mode</string>
     <string name="settings_privacy_mode_text">Observe this text.</string>
+    <string name="action_search">Search</string>
+    <string name="action_cancel_search">Cancel Search</string>
 </resources>

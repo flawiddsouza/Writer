@@ -4,18 +4,23 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -25,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     WriterCursorAdapter writerAdapter;
     WriterDatabaseHandler handler;
+    private boolean searchClicked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,12 +39,16 @@ public class MainActivity extends AppCompatActivity {
 
         handler = WriterDatabaseHandler.getInstance(this); // init handler
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        ListView myListView = (ListView) findViewById(R.id.mainListView);
+        ListView myListView = findViewById(R.id.mainListView);
         writerAdapter = new WriterCursorAdapter(this, createCursor());
         myListView.setAdapter(writerAdapter);
+
+        myListView.setTextFilterEnabled(true);
+
+        writerAdapter.setFilterQueryProvider(searchQuery -> createCursorFiltered(searchQuery));
 
         myListView.setOnItemClickListener((parent, view, position, id) -> editNote(id));
         registerForContextMenu(myListView); // Register the ListView for Context menu
@@ -48,6 +58,18 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        MenuItem search = menu.findItem(R.id.action_search);
+        MenuItem cancelSearch = menu.findItem(R.id.action_cancel_search);
+
+        if (searchClicked) {
+            search.setVisible(false);
+            cancelSearch.setVisible(true);
+        } else {
+            cancelSearch.setVisible(false);
+            search.setVisible(true);
+        }
+
         return true;
     }
 
@@ -59,6 +81,64 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
+        }
+
+        if(id == R.id.action_search) {
+            searchClicked = true;
+            invalidateOptionsMenu();
+
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+            EditText editText = new EditText(MainActivity.this);
+
+            editText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                    Toast.makeText(MainActivity.this, editText.getText().toString(), Toast.LENGTH_LONG).show();
+                    writerAdapter.getFilter().filter(editText.getText().toString());
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+
+                }
+            });
+
+            editText.setTextColor(Color.WHITE);
+            editText.setBackgroundColor(Color.TRANSPARENT);
+
+            getSupportActionBar().setCustomView(editText);
+            getSupportActionBar().setDisplayShowCustomEnabled(true);
+
+            editText.getLayoutParams().width = LinearLayout.LayoutParams.MATCH_PARENT;
+
+            editText.requestFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+
+            return true;
+        }
+
+        if(id == R.id.action_cancel_search) {
+            searchClicked = false;
+            invalidateOptionsMenu();
+
+            // close soft keyboard
+            View view = this.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+
+            writerAdapter.swapCursor(createCursor()); // reset adapter to unfiltered query
+
+            getSupportActionBar().setDisplayShowCustomEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
         }
 
         return super.onOptionsItemSelected(item);
@@ -148,5 +228,11 @@ public class MainActivity extends AppCompatActivity {
     public Cursor createCursor() {
         SQLiteDatabase db = handler.getReadableDatabase();
         return db.rawQuery("SELECT * FROM entries ORDER BY updated_at DESC", null);
+    }
+
+    public Cursor createCursorFiltered(CharSequence searchString) {
+        SQLiteDatabase db = handler.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM entries WHERE title LIKE ? OR body LIKE ? ORDER BY updated_at DESC", new String[]{'%' + searchString.toString() + '%', '%' + searchString.toString() + '%'});
+        return cursor;
     }
 }
