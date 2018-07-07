@@ -14,6 +14,7 @@ public class EditorActivity extends AppCompatActivity {
     private EditText title;
     private EditText editText;
     private boolean edit;
+    private long activeCategory;
     private long id;
     WriterDatabaseHandler handler;
     Entry thisEntry;
@@ -37,6 +38,7 @@ public class EditorActivity extends AppCompatActivity {
 
         Bundle bundle = getIntent().getExtras();
         edit = bundle.getBoolean("edit");
+        activeCategory = bundle.getLong("activeCategory");
 
         if(edit) {
             id = bundle.getLong("id");
@@ -59,6 +61,7 @@ public class EditorActivity extends AppCompatActivity {
             Entry newEntry = new Entry();
             newEntry.title = title.getText().toString();
             newEntry.body = editText.getText().toString();
+            newEntry.categoryId = activeCategory;
             handler.addEntry(newEntry);
         } else {
             Entry updatedEntry = new Entry();

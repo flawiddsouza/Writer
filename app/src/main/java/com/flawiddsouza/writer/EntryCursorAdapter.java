@@ -10,12 +10,12 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
-public class WriterCursorAdapter extends CursorAdapter {
+public class EntryCursorAdapter extends CursorAdapter {
 
     private String title;
     private String body;
 
-    public WriterCursorAdapter(Context context, Cursor cursor) {
+    public EntryCursorAdapter(Context context, Cursor cursor) {
         super(context, cursor, 0);
     }
 

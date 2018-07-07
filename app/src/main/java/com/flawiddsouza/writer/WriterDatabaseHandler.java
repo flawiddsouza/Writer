@@ -21,10 +21,12 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
 
     // Database Info
     private static final String DATABASE_NAME = "Writer"; // (BuildConfig.DEBUG) ? "/sdcard/writer.db" : "Writer";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String TABLE_ENTRIES = "entries";
     private static final String KEY_ENTRY_TITLE = "title";
     private static final String KEY_ENTRY_BODY = "body";
+    private static final String TABLE_CATEGORIES = "categories";
+    private static final String KEY_CATEGORY_NAME = "name";
 
     public static synchronized WriterDatabaseHandler getInstance(Context context) {
         // Use the application context, which will ensure that you
@@ -55,6 +57,8 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
         db.beginTransaction();
         try {
             db.execSQL("CREATE TABLE entries ( _id INTEGER PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
+            db.execSQL("CREATE TABLE categories ( _id INTEGER PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
+            db.execSQL("ALTER TABLE entries ADD COLUMN category_id INTEGER;");
             db.setTransactionSuccessful();
         }
         finally {
@@ -67,8 +71,13 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
     // adding constraints to database, etc
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // SQL for upgrading the tables
+        if(oldVersion < 2) {
+            db.execSQL("CREATE TABLE categories ( _id INTEGER PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
+            db.execSQL("ALTER TABLE entries ADD COLUMN category_id INTEGER;");
+        }
     }
+
+    //-----------------------Entries--------------------------
 
     // Insert a entry into the database
     public void addEntry(Entry entry) {
@@ -79,6 +88,9 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 ContentValues values = new ContentValues();
                 values.put(KEY_ENTRY_TITLE, entry.title);
                 values.put(KEY_ENTRY_BODY, entry.body);
+                if(entry.categoryId != -1) { // if not main category
+                    values.put("category_id", entry.categoryId);
+                }
                 db.insertOrThrow(TABLE_ENTRIES, null, values);
                 db.setTransactionSuccessful();
             } catch (Exception e) {
@@ -99,6 +111,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 cursor.moveToFirst(); // select first row
                 thisEntry.title = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ENTRY_TITLE));
                 thisEntry.body = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ENTRY_BODY));
+                thisEntry.categoryId = cursor.getLong(cursor.getColumnIndexOrThrow("category_id"));
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 thisEntry.createdAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("created_at")));
                 thisEntry.updatedAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("updated_at")));
@@ -142,21 +155,72 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    public List<Entry> getEntries() {
+    //-----------------------Categories--------------------------
+
+    public String getCategoryName(long id) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM entries ORDER BY updated_at DESC", null);
-        List<Entry> list = new ArrayList<>();
-        if (cursor.moveToFirst()) {
-            while (cursor.isAfterLast() == false) {
-                Entry entry = new Entry();
-                entry.title = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_TITLE));
-                entry.body = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_BODY));
-                list.add(entry);
-                cursor.moveToNext();
+        try {
+            Cursor cursor = db.rawQuery("SELECT * FROM categories WHERE _id=?", new String[]{Long.toString(id)});
+            if(cursor.getCount() == 1) {
+                cursor.moveToFirst(); // select first row
+                return cursor.getString(cursor.getColumnIndexOrThrow(KEY_CATEGORY_NAME));
+            }
+        } catch (Exception e) {
+            Log.e("cursor error", e.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    public void addCategory(Category category) {
+        if(!category.name.isEmpty()) {
+            SQLiteDatabase db = getWritableDatabase();
+            db.beginTransaction();
+            try {
+                ContentValues values = new ContentValues();
+                values.put(KEY_CATEGORY_NAME, category.name);
+                db.insertOrThrow(TABLE_CATEGORIES, null, values);
+                db.setTransactionSuccessful();
+            } catch (Exception e) {
+                Log.d(TAG, "Error while trying to add category to database");
+            } finally {
+                db.endTransaction();
             }
         }
-        return list;
     }
+
+    public void updateCategory(long id, Category category) {
+        if(!category.name.isEmpty()) {
+            SQLiteDatabase db = getWritableDatabase();
+            db.beginTransaction();
+            try {
+                ContentValues values = new ContentValues();
+                values.put(KEY_CATEGORY_NAME, category.name);
+                values.put("updated_at", getDateTime());
+                db.update(TABLE_CATEGORIES, values, "_id=?", new String[] { Long.toString(id) });
+                db.setTransactionSuccessful();
+            } catch (Exception e) {
+                Log.d(TAG, "Error while trying to update category from database");
+            } finally {
+                db.endTransaction();
+            }
+        }
+    }
+
+    public void deleteCategory(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete(TABLE_CATEGORIES, "_id=?", new String[] { Long.toString(id) });
+            db.delete(TABLE_ENTRIES, "category_id=?", new String[] { Long.toString(id) });
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to delete category from database");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    //-----------------------Other--------------------------
 
     private String getDateTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
