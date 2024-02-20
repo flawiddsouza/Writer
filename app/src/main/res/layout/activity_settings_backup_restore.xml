@@ -15,7 +15,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingLeft="18dp">
-                <TextView
+                <!--<TextView
                     android:text="Local"
                     android:textColor="@android:color/black"
                     android:textSize="@dimen/textSize1"
@@ -41,35 +41,24 @@
                         android:layout_marginLeft="10dp"
                         android:text="Restore"
                         android:onClick="localRestore" />
-                </GridLayout>
+                </GridLayout>-->
+
                 <TextView
-                    android:text="Google Drive"
+                    android:text="Manual Backup"
                     android:textColor="@android:color/black"
                     android:textSize="@dimen/textSize1"
                     android:layout_marginBottom="5dp"
                     android:layout_marginTop="20dp" />
-                <GridLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Last Backup:" />
-                    <TextView
-                        android:id="@+id/last_cloud_backup_date"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="6dp"
-                        android:text="Never"/>
-                </GridLayout>
                 <GridLayout
                     android:orientation="horizontal"
                     android:layout_marginTop="5dp">
                     <Button
-                        android:text="Backup"
-                        android:onClick="cloudBackup" />
+                        android:text="Export"
+                        android:onClick="manualBackupExport" />
                     <Button
                         android:layout_marginLeft="10dp"
                         android:text="Restore"
-                        android:onClick="cloudRestore" />
+                        android:onClick="manualBackupRestore" />
                 </GridLayout>
     </GridLayout>
 </LinearLayout>

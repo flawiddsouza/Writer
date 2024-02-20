@@ -3,7 +3,6 @@
     <string name="action_settings">Settings</string>
     <string name="editor_hint">Type here...</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="pref_header_backup_restore">Backup &amp; Restore</string>
     <string name="backup_restore_heading"><![CDATA[Backup & Restore]]></string>
     <string name="privacy_mode_heading">Privacy Mode</string>
     <string name="settings_privacy_mode_text">Observe this text.</string>
