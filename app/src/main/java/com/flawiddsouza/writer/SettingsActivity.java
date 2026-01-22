@@ -1,33 +1,45 @@
 package com.flawiddsouza.writer;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NavUtils;
 import android.view.MenuItem;
+import android.view.View;
 
-import java.util.List;
-
-public class SettingsActivity extends AppCompatPreferenceActivity {
+public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setContentView(R.layout.activity_settings);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
+        // Set up click listeners for settings sections
+        findViewById(R.id.settings_backup_restore).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SettingsActivity.this, SettingsBackupRestoreActivity.class));
+            }
+        });
+
+        findViewById(R.id.settings_privacy_mode).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SettingsActivity.this, SettingsPrivacyModeActivity.class));
+            }
+        });
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBuildHeaders(List<PreferenceActivity.Header> target) {
-        loadHeadersFromResource(R.xml.pref_headers, target);
     }
 }

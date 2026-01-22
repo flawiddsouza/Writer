@@ -241,28 +241,38 @@ public class MainActivity extends AppCompatActivity {
                         .setMessage("Created on: " + DATE_FORMAT.format(thisEntry.createdAt) + '\n' + "Updated on: " + DATE_FORMAT.format(thisEntry.updatedAt))
                         .show();
             } else if (item.getTitle() == "Copy") {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 Entry thisEntry = handler.getEntry(activeListItem.id);
-                ClipData clip;
-                if (!thisEntry.title.isEmpty()) {
-                    clip = ClipData.newPlainText("A Note", thisEntry.title + '\n' + thisEntry.body);
+
+                if(thisEntry.isEncrypted) {
+                    Toast.makeText(MainActivity.this, "Cannot copy encrypted notes. Open the note first.", Toast.LENGTH_SHORT).show();
                 } else {
-                    clip = ClipData.newPlainText("A Note", thisEntry.body);
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip;
+                    if (!thisEntry.title.isEmpty()) {
+                        clip = ClipData.newPlainText("A Note", thisEntry.title + '\n' + thisEntry.body);
+                    } else {
+                        clip = ClipData.newPlainText("A Note", thisEntry.body);
+                    }
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(MainActivity.this, "Note Copied", Toast.LENGTH_SHORT).show();
                 }
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(MainActivity.this, "Note Copied", Toast.LENGTH_SHORT).show();
             } else if (item.getTitle() == "Share") {
                 Entry thisEntry = handler.getEntry(activeListItem.id);
-                Intent sendIntent = new Intent();
-                sendIntent.setAction(Intent.ACTION_SEND);
-                if (!thisEntry.title.isEmpty()) {
-                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, thisEntry.title);
-                    sendIntent.putExtra(Intent.EXTRA_TEXT, thisEntry.body);
+
+                if(thisEntry.isEncrypted) {
+                    Toast.makeText(MainActivity.this, "Cannot share encrypted notes. Open the note first.", Toast.LENGTH_SHORT).show();
                 } else {
-                    sendIntent.putExtra(Intent.EXTRA_TEXT, thisEntry.body);
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    if (!thisEntry.title.isEmpty()) {
+                        sendIntent.putExtra(Intent.EXTRA_SUBJECT, thisEntry.title);
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, thisEntry.body);
+                    } else {
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, thisEntry.body);
+                    }
+                    sendIntent.setType("text/plain");
+                    startActivity(Intent.createChooser(sendIntent, "Share Note"));
                 }
-                sendIntent.setType("text/plain");
-                startActivity(Intent.createChooser(sendIntent, "Share Note"));
             } else if (item.getTitle() == "Delete") {
                 new AlertDialog.Builder(MainActivity.this)
                         .setMessage("Do you really want to delete this?")
@@ -286,9 +296,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void editNote(long id) {
+        // Check if note is encrypted
+        Entry entry = handler.getEntry(id);
+
+        if(entry.isEncrypted) {
+            // Check if we have a session password for THIS note
+            char[] sessionPassword = CryptoManager.INSTANCE.getSessionPassword(id);
+
+            if(sessionPassword != null) {
+                // Decrypt using session password
+                try {
+                    String decryptedBody = CryptoManager.INSTANCE.decrypt(entry.body, sessionPassword);
+                    openEditor(id, sessionPassword, decryptedBody);
+                } catch (Exception e) {
+                    // Session password is invalid (shouldn't happen, but handle it)
+                    CryptoManager.INSTANCE.clearSessionPassword(id);
+                    showPasswordDialog(id, entry);
+                }
+            } else {
+                // No session password, show dialog
+                showPasswordDialog(id, entry);
+            }
+        } else {
+            // Not encrypted, open normally
+            openEditor(id, null, null);
+        }
+    }
+
+    private void showPasswordDialog(long id, Entry entry) {
+        new PasswordVerifyDialog(this, password -> {
+            // Verify password by attempting to decrypt
+            try {
+                String decryptedBody = CryptoManager.INSTANCE.decrypt(entry.body, password);
+                // Password is correct - store session for THIS note
+                CryptoManager.INSTANCE.setSessionPassword(id, password);
+                openEditor(id, password, decryptedBody);
+            } catch (Exception e) {
+                // Wrong password
+                Toast.makeText(this, "Incorrect password. Please try again.", Toast.LENGTH_SHORT).show();
+                // Let user try again
+                showPasswordDialog(id, entry);
+            }
+            return kotlin.Unit.INSTANCE;
+        }, null).show();
+    }
+
+    private void openEditor(long id, char[] password, String decryptedBody) {
         Intent intent = new Intent(this, EditorActivity.class);
         intent.putExtra("edit", true);
         intent.putExtra("id", id);
+        if(password != null) {
+            intent.putExtra("password", password);
+        }
+        if(decryptedBody != null) {
+            intent.putExtra("decryptedBody", decryptedBody);
+        }
         startActivity(intent);
     }
 
@@ -303,10 +365,12 @@ public class MainActivity extends AppCompatActivity {
 
     public Cursor createEntriesCursorFiltered(CharSequence searchString) {
         SQLiteDatabase db = handler.getReadableDatabase();
+        // For encrypted notes, only search in title (not body)
+        // For non-encrypted notes, search both title and body
         if (activeCategory == -1) {
-            return db.rawQuery("SELECT * FROM (SELECT * FROM entries WHERE category_id IS NULL) WHERE title LIKE ? OR body LIKE ? ORDER BY updated_at DESC", new String[]{ '%' + searchString.toString() + '%', '%' + searchString.toString() + '%' });
+            return db.rawQuery("SELECT * FROM (SELECT * FROM entries WHERE category_id IS NULL) WHERE title LIKE ? OR (is_encrypted = 0 AND body LIKE ?) ORDER BY updated_at DESC", new String[]{ '%' + searchString.toString() + '%', '%' + searchString.toString() + '%' });
         } else {
-            return db.rawQuery("SELECT * FROM (SELECT * FROM entries WHERE category_id = ?) WHERE title LIKE ? OR body LIKE ? ORDER BY updated_at DESC", new String[]{ Long.toString(activeCategory), '%' + searchString.toString() + '%', '%' + searchString.toString() + '%' });
+            return db.rawQuery("SELECT * FROM (SELECT * FROM entries WHERE category_id = ?) WHERE title LIKE ? OR (is_encrypted = 0 AND body LIKE ?) ORDER BY updated_at DESC", new String[]{ Long.toString(activeCategory), '%' + searchString.toString() + '%', '%' + searchString.toString() + '%' });
         }
     }
 

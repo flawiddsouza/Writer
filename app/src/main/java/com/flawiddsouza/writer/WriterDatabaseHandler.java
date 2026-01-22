@@ -21,7 +21,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
 
     // Database Info
     private static final String DATABASE_NAME = "Writer"; // (BuildConfig.DEBUG) ? "/sdcard/writer.db" : "Writer";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String TABLE_ENTRIES = "entries";
     private static final String KEY_ENTRY_TITLE = "title";
     private static final String KEY_ENTRY_BODY = "body";
@@ -59,6 +59,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE entries ( _id INTEGER PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
             db.execSQL("CREATE TABLE categories ( _id INTEGER PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
             db.execSQL("ALTER TABLE entries ADD COLUMN category_id INTEGER;");
+            db.execSQL("ALTER TABLE entries ADD COLUMN is_encrypted INTEGER DEFAULT 0;");
             db.setTransactionSuccessful();
         }
         finally {
@@ -75,12 +76,16 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE categories ( _id INTEGER PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
             db.execSQL("ALTER TABLE entries ADD COLUMN category_id INTEGER;");
         }
+        if(oldVersion < 3) {
+            db.execSQL("ALTER TABLE entries ADD COLUMN is_encrypted INTEGER DEFAULT 0;");
+        }
     }
 
     //-----------------------Entries--------------------------
 
     // Insert a entry into the database
-    public void addEntry(Entry entry) {
+    public long addEntry(Entry entry) {
+        long newId = -1;
         if(!entry.title.isEmpty() || !entry.body.isEmpty()) {
             SQLiteDatabase db = getWritableDatabase();
             db.beginTransaction();
@@ -91,7 +96,8 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 if(entry.categoryId != -1) { // if not main category
                     values.put("category_id", entry.categoryId);
                 }
-                db.insertOrThrow(TABLE_ENTRIES, null, values);
+                values.put("is_encrypted", entry.isEncrypted ? 1 : 0);
+                newId = db.insertOrThrow(TABLE_ENTRIES, null, values);
                 db.setTransactionSuccessful();
             } catch (Exception e) {
                 Log.d(TAG, "Error while trying to add entry to database");
@@ -99,6 +105,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 db.endTransaction();
             }
         }
+        return newId;
     }
 
     // get entry for given id from database
@@ -112,6 +119,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 thisEntry.title = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ENTRY_TITLE));
                 thisEntry.body = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ENTRY_BODY));
                 thisEntry.categoryId = cursor.getLong(cursor.getColumnIndexOrThrow("category_id"));
+                thisEntry.isEncrypted = cursor.getInt(cursor.getColumnIndexOrThrow("is_encrypted")) == 1;
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 thisEntry.createdAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("created_at")));
                 thisEntry.updatedAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("updated_at")));
@@ -130,6 +138,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 ContentValues values = new ContentValues();
                 values.put(KEY_ENTRY_TITLE, entry.title);
                 values.put(KEY_ENTRY_BODY, entry.body);
+                values.put("is_encrypted", entry.isEncrypted ? 1 : 0);
                 values.put("updated_at", getDateTime());
                 db.update(TABLE_ENTRIES, values, "_id=?", new String[] { Long.toString(id) });
                 db.setTransactionSuccessful();

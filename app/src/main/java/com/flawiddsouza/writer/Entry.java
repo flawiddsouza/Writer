@@ -8,4 +8,5 @@ public class Entry {
     public Long categoryId;
     public Date createdAt;
     public Date updatedAt;
+    public boolean isEncrypted;
 }

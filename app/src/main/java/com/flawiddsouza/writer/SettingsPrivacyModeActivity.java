@@ -3,7 +3,7 @@ package com.flawiddsouza.writer;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import androidx.core.app.NavUtils;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.MenuItem;

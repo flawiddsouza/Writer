@@ -8,14 +8,20 @@
         android:id="@+id/actionBarTitle"
         android:inputType="text"
         android:textColor="@android:color/white"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="match_parent"
         android:background="@android:color/transparent"/>
 
-    <!--<Button-->
-        <!--android:id="@+id/actionBarButton"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="Button" />-->
+    <ToggleButton
+        android:id="@+id/lockToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:textOn="🔒"
+        android:textOff="🔓"
+        android:textColor="@android:color/white"
+        android:background="@android:color/transparent"
+        android:minWidth="48dp"
+        android:padding="8dp"/>
 
 </LinearLayout>
