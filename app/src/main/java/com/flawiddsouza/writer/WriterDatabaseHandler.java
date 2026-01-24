@@ -8,9 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import static android.content.ContentValues.TAG;
@@ -20,8 +18,8 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
     private static WriterDatabaseHandler sInstance;
 
     // Database Info
-    private static final String DATABASE_NAME = "Writer"; // (BuildConfig.DEBUG) ? "/sdcard/writer.db" : "Writer";
-    private static final int DATABASE_VERSION = 3;
+    private static final String DATABASE_NAME = "Writer";
+    private static final int DATABASE_VERSION = 4;
     private static final String TABLE_ENTRIES = "entries";
     private static final String KEY_ENTRY_TITLE = "title";
     private static final String KEY_ENTRY_BODY = "body";
@@ -60,6 +58,18 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE categories ( _id INTEGER PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')), updated_at TIMESTAMP DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime')) );");
             db.execSQL("ALTER TABLE entries ADD COLUMN category_id INTEGER;");
             db.execSQL("ALTER TABLE entries ADD COLUMN is_encrypted INTEGER DEFAULT 0;");
+
+            // Add sync-related columns
+            db.execSQL("ALTER TABLE entries ADD COLUMN sync_status TEXT DEFAULT 'synced';");
+            db.execSQL("ALTER TABLE entries ADD COLUMN last_synced_at TIMESTAMP;");
+            db.execSQL("ALTER TABLE entries ADD COLUMN server_id TEXT;");
+            db.execSQL("ALTER TABLE entries ADD COLUMN is_deleted INTEGER DEFAULT 0;");
+
+            db.execSQL("ALTER TABLE categories ADD COLUMN sync_status TEXT DEFAULT 'synced';");
+            db.execSQL("ALTER TABLE categories ADD COLUMN last_synced_at TIMESTAMP;");
+            db.execSQL("ALTER TABLE categories ADD COLUMN server_id TEXT;");
+            db.execSQL("ALTER TABLE categories ADD COLUMN is_deleted INTEGER DEFAULT 0;");
+
             db.setTransactionSuccessful();
         }
         finally {
@@ -79,6 +89,19 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
         if(oldVersion < 3) {
             db.execSQL("ALTER TABLE entries ADD COLUMN is_encrypted INTEGER DEFAULT 0;");
         }
+        if(oldVersion < 4) {
+            // Add sync-related columns to entries table
+            db.execSQL("ALTER TABLE entries ADD COLUMN sync_status TEXT DEFAULT 'synced';");
+            db.execSQL("ALTER TABLE entries ADD COLUMN last_synced_at TIMESTAMP;");
+            db.execSQL("ALTER TABLE entries ADD COLUMN server_id TEXT;");
+            db.execSQL("ALTER TABLE entries ADD COLUMN is_deleted INTEGER DEFAULT 0;");
+
+            // Add sync-related columns to categories table
+            db.execSQL("ALTER TABLE categories ADD COLUMN sync_status TEXT DEFAULT 'synced';");
+            db.execSQL("ALTER TABLE categories ADD COLUMN last_synced_at TIMESTAMP;");
+            db.execSQL("ALTER TABLE categories ADD COLUMN server_id TEXT;");
+            db.execSQL("ALTER TABLE categories ADD COLUMN is_deleted INTEGER DEFAULT 0;");
+        }
     }
 
     //-----------------------Entries--------------------------
@@ -97,6 +120,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                     values.put("category_id", entry.categoryId);
                 }
                 values.put("is_encrypted", entry.isEncrypted ? 1 : 0);
+                values.put("sync_status", "pending"); // Mark as pending for sync
                 newId = db.insertOrThrow(TABLE_ENTRIES, null, values);
                 db.setTransactionSuccessful();
             } catch (Exception e) {
@@ -123,6 +147,15 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 thisEntry.createdAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("created_at")));
                 thisEntry.updatedAt = format.parse(cursor.getString(cursor.getColumnIndexOrThrow("updated_at")));
+
+                // Read sync-related fields
+                thisEntry.syncStatus = cursor.getString(cursor.getColumnIndexOrThrow("sync_status"));
+                String lastSyncedAtStr = cursor.getString(cursor.getColumnIndexOrThrow("last_synced_at"));
+                if(lastSyncedAtStr != null) {
+                    thisEntry.lastSyncedAt = format.parse(lastSyncedAtStr);
+                }
+                thisEntry.serverId = cursor.getString(cursor.getColumnIndexOrThrow("server_id"));
+                thisEntry.isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow("is_deleted")) == 1;
             }
         } catch (Exception e) {
             Log.e("cursor error", e.getLocalizedMessage());
@@ -140,6 +173,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 values.put(KEY_ENTRY_BODY, entry.body);
                 values.put("is_encrypted", entry.isEncrypted ? 1 : 0);
                 values.put("updated_at", getDateTime());
+                values.put("sync_status", "pending"); // Mark as pending for sync
                 db.update(TABLE_ENTRIES, values, "_id=?", new String[] { Long.toString(id) });
                 db.setTransactionSuccessful();
             } catch (Exception e) {
@@ -150,12 +184,17 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    // Delete entry from the database
+    // Delete entry from the database (soft delete for sync)
     public void deleteEntry(long id) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete(TABLE_ENTRIES, "_id=?", new String[] { Long.toString(id) });
+            // Soft delete: mark as deleted and pending sync
+            ContentValues values = new ContentValues();
+            values.put("is_deleted", 1);
+            values.put("sync_status", "pending");
+            db.update(TABLE_ENTRIES, values, "_id=?", new String[] { Long.toString(id) });
+
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to delete entry from database");
@@ -187,6 +226,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
             try {
                 ContentValues values = new ContentValues();
                 values.put(KEY_CATEGORY_NAME, category.name);
+                values.put("sync_status", "pending"); // Mark as pending for sync
                 db.insertOrThrow(TABLE_CATEGORIES, null, values);
                 db.setTransactionSuccessful();
             } catch (Exception e) {
@@ -205,6 +245,7 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
                 ContentValues values = new ContentValues();
                 values.put(KEY_CATEGORY_NAME, category.name);
                 values.put("updated_at", getDateTime());
+                values.put("sync_status", "pending"); // Mark as pending for sync
                 db.update(TABLE_CATEGORIES, values, "_id=?", new String[] { Long.toString(id) });
                 db.setTransactionSuccessful();
             } catch (Exception e) {
@@ -219,8 +260,18 @@ public class WriterDatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete(TABLE_CATEGORIES, "_id=?", new String[] { Long.toString(id) });
-            db.delete(TABLE_ENTRIES, "category_id=?", new String[] { Long.toString(id) });
+            // Soft delete the category: mark as deleted and pending sync
+            ContentValues categoryValues = new ContentValues();
+            categoryValues.put("is_deleted", 1);
+            categoryValues.put("sync_status", "pending");
+            db.update(TABLE_CATEGORIES, categoryValues, "_id=?", new String[] { Long.toString(id) });
+
+            // Soft delete all entries in this category
+            ContentValues entryValues = new ContentValues();
+            entryValues.put("is_deleted", 1);
+            entryValues.put("sync_status", "pending");
+            db.update(TABLE_ENTRIES, entryValues, "category_id=?", new String[] { Long.toString(id) });
+
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to delete category from database");

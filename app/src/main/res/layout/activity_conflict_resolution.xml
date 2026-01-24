@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Resolve Sync Conflict"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="This note has conflicting changes. Choose which version to keep or merge them."
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Local Version Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Local Version"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/local_timestamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modified: --"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/local_version_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Loading..."
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginBottom="16dp"
+            android:maxLines="10"
+            android:scrollbars="vertical" />
+
+        <!-- Server Version Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Server Version"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/server_timestamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modified: --"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/server_version_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Loading..."
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginBottom="24dp"
+            android:maxLines="10"
+            android:scrollbars="vertical" />
+
+        <!-- Action Buttons -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose Action"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/keep_local_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Keep Local Version"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/keep_server_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Keep Server Version"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/merge_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Merge Both (Manual Edit Required)"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+</ScrollView>

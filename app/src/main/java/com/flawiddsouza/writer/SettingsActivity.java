@@ -32,6 +32,13 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(new Intent(SettingsActivity.this, SettingsPrivacyModeActivity.class));
             }
         });
+
+        findViewById(R.id.settings_sync).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SettingsActivity.this, SyncSettingsActivity.class));
+            }
+        });
     }
 
     @Override

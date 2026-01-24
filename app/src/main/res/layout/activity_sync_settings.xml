@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Account Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Account"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/account_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Not logged in"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <!-- Server URL -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Server URL"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/server_url_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="https://sync.example.com"
+            android:inputType="textUri"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Email -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/email_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="user@example.com"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Password -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/password_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Login/SignOut Buttons -->
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Login / Register"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/sign_out_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign Out"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Sync Frequency -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sync Frequency"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/sync_frequency_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/sync_manual"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Manual only" />
+
+            <RadioButton
+                android:id="@+id/sync_15_min"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Every 15 minutes" />
+
+            <RadioButton
+                android:id="@+id/sync_1_hour"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Every hour (recommended)"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/sync_6_hours"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Every 6 hours" />
+        </RadioGroup>
+
+        <!-- Sync Options -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sync Options"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/wifi_only_checkbox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="WiFi only"
+            android:checked="false" />
+
+        <!-- Status Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Not configured"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Sync Now Button -->
+        <Button
+            android:id="@+id/sync_now_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sync Now"
+            android:enabled="false" />
+
+    </LinearLayout>
+</ScrollView>

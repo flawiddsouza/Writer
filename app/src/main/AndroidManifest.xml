@@ -3,6 +3,8 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".Writer"
@@ -52,6 +54,25 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".SettingsActivity" />
+        </activity>
+
+        <!-- Sync-related activities -->
+        <activity
+            android:name=".SyncSettingsActivity"
+            android:label="Sync Settings"
+            android:parentActivityName=".SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".SettingsActivity" />
+        </activity>
+
+        <activity
+            android:name=".ConflictResolutionActivity"
+            android:label="Resolve Conflict"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
     </application>
 
