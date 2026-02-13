@@ -1,32 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_settings_privacy_mode"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.flawiddsouza.writer.SettingsPrivacyModeActivity"
-    android:orientation="horizontal">
-    <GridLayout
+    tools:context="com.flawiddsouza.writer.SettingsPrivacyModeActivity">
+    <LinearLayout
+        android:id="@+id/activity_settings_privacy_mode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="10dp">
+
         <CheckBox
             android:id="@+id/privacy_mode_checkbox"
-            android:text="Enable Privacy Mode"/>
-        <SeekBar
-            android:id="@+id/privacy_meter"
-            android:max="255"
-            android:layout_width="match_parent" />
-        <TextView
-            android:id="@+id/privacy_mode_text_sample"
             android:layout_width="match_parent"
-            android:padding="10dp"
-            android:text="@string/settings_privacy_mode_text"
-            android:textAlignment="center"/>
-    </GridLayout>
-</LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="Enable Privacy Mode"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Privacy Techniques (can combine multiple):"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <CheckBox
+            android:id="@+id/privacy_mode_opacity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Low Opacity"/>
+
+        <TextView
+            android:id="@+id/opacity_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Opacity Intensity:"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="4dp"/>
+
+        <SeekBar
+            android:id="@+id/opacity_meter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <CheckBox
+            android:id="@+id/privacy_mode_shadow_only"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Shadow Blur"/>
+
+        <TextView
+            android:id="@+id/shadow_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Shadow Intensity:"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="4dp"/>
+
+        <SeekBar
+            android:id="@+id/shadow_meter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <CheckBox
+            android:id="@+id/privacy_mode_scanlines"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scanlines (Retro)"/>
+
+        <TextView
+            android:id="@+id/scanlines_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scanline Density:"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="4dp"/>
+
+        <SeekBar
+            android:id="@+id/scanlines_meter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <CheckBox
+            android:id="@+id/privacy_mode_chromatic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chromatic Aberration (Glitch)"/>
+
+        <TextView
+            android:id="@+id/chromatic_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aberration Intensity:"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="4dp"/>
+
+        <SeekBar
+            android:id="@+id/chromatic_meter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Preview:"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F0F0F0">
+
+            <TextView
+                android:id="@+id/privacy_mode_text_sample"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp"
+                android:text="@string/settings_privacy_mode_text"
+                android:gravity="center"
+                android:textSize="18sp"/>
+
+            <View
+                android:id="@+id/preview_scanlines_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:clickable="false"
+                android:focusable="false" />
+
+            <View
+                android:id="@+id/preview_chromatic_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:clickable="false"
+                android:focusable="false" />
+
+        </FrameLayout>
+    </LinearLayout>
+</ScrollView>

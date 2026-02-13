@@ -17,6 +17,8 @@ public class EditorActivity extends AppCompatActivity {
     private EditText title;
     private EditText editText;
     private ToggleButton lockToggle;
+    private android.view.View scanlinesOverlay;
+    private android.view.View chromaticOverlay;
     private boolean edit;
     private long activeCategory;
     private long id;
@@ -43,6 +45,8 @@ public class EditorActivity extends AppCompatActivity {
         title = (EditText) findViewById(R.id.actionBarTitle);
         editText = (EditText) findViewById(R.id.editText);
         lockToggle = (ToggleButton) findViewById(R.id.lockToggle);
+        scanlinesOverlay = findViewById(R.id.scanlines_overlay);
+        chromaticOverlay = findViewById(R.id.chromatic_overlay);
         handler = WriterDatabaseHandler.getInstance(this);
 
         Bundle bundle = getIntent().getExtras();
@@ -169,7 +173,77 @@ public class EditorActivity extends AppCompatActivity {
         // Privacy Mode
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if(preferences.getBoolean("Privacy_Mode_Boolean", false)) {
-            editText.setTextColor(preferences.getInt("Privacy_Mode_Color", R.color.black));
+            boolean opacityEnabled = preferences.getBoolean("Privacy_Mode_Opacity_Enabled", false);
+            boolean shadowEnabled = preferences.getBoolean("Privacy_Mode_Shadow_Enabled", false);
+            boolean scanlinesEnabled = preferences.getBoolean("Privacy_Mode_Scanlines_Enabled", false);
+            boolean chromaticEnabled = preferences.getBoolean("Privacy_Mode_Chromatic_Enabled", false);
+            int opacityIntensity = preferences.getInt("Privacy_Mode_Opacity_Value", 128);
+            int shadowIntensity = preferences.getInt("Privacy_Mode_Shadow_Value", 128);
+            int scanlinesIntensity = preferences.getInt("Privacy_Mode_Scanlines_Value", 50);
+            int chromaticIntensity = preferences.getInt("Privacy_Mode_Chromatic_Value", 30);
+
+            // Reset shadow first
+            title.setShadowLayer(0, 0, 0, android.graphics.Color.TRANSPARENT);
+            editText.setShadowLayer(0, 0, 0, android.graphics.Color.TRANSPARENT);
+
+            // Calculate text and shadow alpha
+            int textAlpha = 255;
+            int shadowAlpha = 0;
+
+            if (opacityEnabled && !shadowEnabled) {
+                // Only opacity: reduce text transparency
+                textAlpha = 255 - opacityIntensity;
+            } else if (shadowEnabled && !opacityEnabled) {
+                // Only shadow: transparent text with shadow
+                textAlpha = 0;
+                shadowAlpha = 60 + (int)(shadowIntensity / 2.8f); // 60-150 range
+            } else if (opacityEnabled && shadowEnabled) {
+                // Both: text is transparent, opacity controls shadow transparency
+                textAlpha = 0;
+                int baseShadowAlpha = 60 + (int)(shadowIntensity / 2.8f);
+                shadowAlpha = (int)(baseShadowAlpha * (255 - opacityIntensity) / 255.0f);
+            }
+
+            // Apply shadow if enabled
+            if (shadowEnabled && shadowAlpha > 0) {
+                float shadowRadius = 2 + (shadowIntensity / 40f); // 2-8 range (more blur)
+                float shadowOffset = 0.5f + (shadowIntensity / 200f); // 0.5-1.8 range (less offset)
+
+                title.setShadowLayer(
+                    shadowRadius,
+                    shadowOffset,
+                    shadowOffset,
+                    android.graphics.Color.argb(shadowAlpha, 0, 0, 0)
+                );
+                editText.setShadowLayer(
+                    shadowRadius,
+                    shadowOffset,
+                    shadowOffset,
+                    android.graphics.Color.argb(shadowAlpha, 0, 0, 0)
+                );
+            }
+
+            // Apply final text color
+            title.setTextColor(android.graphics.Color.argb(textAlpha, 0, 0, 0));
+            editText.setTextColor(android.graphics.Color.argb(textAlpha, 0, 0, 0));
+
+            // Apply scanlines if enabled
+            if (scanlinesEnabled) {
+                ScanlinesDrawable scanlinesDrawable = new ScanlinesDrawable(scanlinesIntensity);
+                scanlinesOverlay.setBackground(scanlinesDrawable);
+                scanlinesOverlay.setVisibility(android.view.View.VISIBLE);
+            } else {
+                scanlinesOverlay.setVisibility(android.view.View.GONE);
+            }
+
+            // Apply chromatic aberration if enabled
+            if (chromaticEnabled) {
+                ChromaticAberrationDrawable chromaticDrawable = new ChromaticAberrationDrawable(chromaticIntensity);
+                chromaticOverlay.setBackground(chromaticDrawable);
+                chromaticOverlay.setVisibility(android.view.View.VISIBLE);
+            } else {
+                chromaticOverlay.setVisibility(android.view.View.GONE);
+            }
         }
 
         // Handle back button press
